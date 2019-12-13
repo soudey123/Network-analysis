@@ -1,0 +1,107 @@
+---
+title: "Dolphin Social Network"
+author: "Soumava Dey"
+date: "April 2, 2019"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. 
+
+## 2. Programming Assignment
+
+    Find some network data that you think is suitable and that you would like to visualize. Here are some sites that provide links to a wide variety of different graph/network datasets:
+
+    Stanford Large Network Dataset Collection
+    UCI Network Data Repository
+
+    Choose a visualization platform and parse the data into a format suitable for the tools you will use.
+    
+## 3. Environment Setup
+
+This analysis requires to load the following R pacakages :
+iGraph,dplyr,networkD3
+
+```{r package, echo = TRUE}
+suppressMessages(library('igraph'))
+suppressMessages(library('dplyr'))
+suppressMessages(library('networkD3'))
+```
+
+## 3. Data Collection
+
+This particular assignment exhibits the undirected social network between 62 different Dolphine species living off in a community in New Zealand. The whole dataset has been complied by the followings:
+
+  D. Lusseau, K. Schneider, O. J. Boisseau, P. Haase, E. Slooten, and
+  S. M. Dawson, The bottlenose dolphin community of Doubtful Sound features
+  a large proportion of long-lasting associations, Behavioral Ecology and
+  Sociobiology 54, 396-405 (2003).
+  
+For data collection purpose, R code loaded the whole dataset found here : https://networkdata.ics.uci.edu/data/dolphins/dolphins.gml
+
+```{r data, echo = TRUE}
+
+dolphins <- read.graph(file='https://networkdata.ics.uci.edu/data/dolphins/dolphins.gml', format='gml')
+
+```
+
+## 4. Data Manipulation 
+
+During this step the centrality measure has been calculated by the function "betweenness" and "closeness".
+
+NetworkD3 package edge references to nodes start from 0 so the edge value has been adjusted here
+
+```{r data manipulation, echo = TRUE}
+
+dolphins_nodes <- get.data.frame(dolphins, what = 'vertices') %>% mutate(Betweenness = betweenness(dolphins), Closeness = closeness(dolphins))
+dolphins_edges <- get.data.frame(dolphins, what = 'edges')
+
+dolphins_edges$from <- dolphins_edges$from - 1
+dolphins_edges$to <- dolphins_edges$to - 1
+
+```
+
+## 5. Data Visualization
+
+Create an interactive network D3 graph to achieve the following purpose :
+
+  - click-and-drag the nodes.
+  - double click on any node for zooming.
+  - move your cursor to the graph and scroll can zoom on whole graph.
+  - see the social network among all the dolphin species.
+  
+  
+ 
+  
+  
+```{r network, echo = TRUE}
+forceNetwork(Links = dolphins_edges, Nodes = dolphins_nodes,
+             Source = "from", Target ="to",
+             colourScale = JS("d3.scaleOrdinal(d3.schemeCategory20);"),
+             radiusCalculation = JS("Math.sqrt(d.nodesize)+6"),
+             NodeID = "label",
+             Nodesize = "id",
+             Group = "id",
+             linkDistance = 100,opacity = 1.0, zoom = TRUE,fontSize = 12,opacityNoHover = TRUE)
+
+```
+
+
+
+
+## 6. References
+
+https://www.rdocumentation.org/packages/networkD3/versions/0.4/topics/forceNetwork
+
+https://igraph.org/r/
+
+
